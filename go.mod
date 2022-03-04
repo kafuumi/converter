@@ -1,3 +1,3 @@
-module github.com/hami_lemon/converter
+module github.com/Hami-Lemon/converter
 
 go 1.17

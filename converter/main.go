@@ -3,7 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/hami_lemon/converter"
+	"github.com/Hami-Lemon/converter"
 	"os"
 )
 
