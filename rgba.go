@@ -9,7 +9,8 @@ const (
 	MaskRGB         = ^MaskA
 )
 
-// ARGB 包含RGB和透明度的颜色值
+// ARGB 32位无符号数，包含RGB和透明度的颜色值，按大端序排列，顺序为A,R,G,B
+//透明度ff表示完全透明，00表示完全不透明，例如：完全不透明的红色表示为0x00ff0000
 type ARGB uint32
 
 func ParseRGB(rgb uint32) ARGB {
