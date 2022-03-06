@@ -150,24 +150,24 @@ func superChat(src Element) *BulletChatNode {
 	node.Price = price
 	node.Time = int(timePoint * 1000)
 	node.Type = SupperChat
-	//不同价格的少sc有不同的颜色和显示时间
-	if price <= 50 {
+	//不同价格的sc有不同的颜色和显示时间
+	if price < 50 {
 		//显示一分钟
 		node.ShowTime = 60
 		node.Color = 0x2a60b2
-	} else if price <= 100 {
+	} else if price < 100 {
 		//显示两分钟
 		node.ShowTime = 120
 		node.Color = 0x427d9e
-	} else if price <= 500 {
+	} else if price < 500 {
 		//显示五分钟
 		node.ShowTime = 300
 		node.Color = 0xe2b52b
-	} else if price <= 1000 {
+	} else if price < 1000 {
 		//显示30分钟
 		node.ShowTime = 1800
 		node.Color = 0xe09443
-	} else if price <= 2000 {
+	} else if price < 2000 {
 		//显示一小时
 		node.ShowTime = 3600
 		node.Color = 0xe54d4d
