@@ -1,7 +1,9 @@
 package converter
 
 import (
+	"bufio"
 	"container/list"
+	"io"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -51,39 +53,46 @@ type BulletChatPool struct {
 	Ver string
 }
 
-func ParseBulletChat(root *Element, filter BulletChatFilter) *BulletChatPool {
+func LoadPool(src io.Reader, chain *FilterChain) *BulletChatPool {
+	dom := loadXML(src)
+	return parseBulletChat(dom, chain)
+}
+
+func parseBulletChat(root *element, chain *FilterChain) *BulletChatPool {
+	if root == nil {
+		return nil
+	}
 	pool := new(BulletChatPool)
-	children := root.Children
+	children := root.children
 	if children == nil {
 		return nil
 	}
 	pool.BulletChat = list.New()
 	for node := children.Front(); node != nil; node = node.Next() {
-		element := node.Value.(Element)
+		e := node.Value.(element)
 		var bulletChat *BulletChatNode
-		switch element.Name {
+		switch e.name {
 		//录播姬信息
 		case "BililiveRecorder":
-			pool.Ver = element.Attrs["version"]
+			pool.Ver = e.attrs["version"]
 			//房间信息
 		case "BililiveRecorderRecordInfo":
-			pool.RoomId = element.Attrs["roomid"]
-			pool.Name = element.Attrs["name"]
-			pool.Title = element.Attrs["title"]
+			pool.RoomId = e.attrs["roomid"]
+			pool.Name = e.attrs["name"]
+			pool.Title = e.attrs["title"]
 			//普通弹幕
 		case "d":
-			bulletChat = plainChat(element)
+			bulletChat = plainChat(e)
 			//sc
 		case "sc":
-			bulletChat = superChat(element)
+			bulletChat = superChat(e)
 		case "gift":
 			//礼物信息
 		}
 
 		if bulletChat != nil {
-			//因为 || 运算符会有短路效应，所以当filter为空时，会直接加入该弹幕，
-			//且不会执行filter方法，因此不会出现空指针异常
-			if filter == nil || filter.filter(bulletChat) {
+			//当filter为空或过滤器返回true，会直接加入该弹幕，
+			if chain == nil || chain.filter(bulletChat) {
 				//这里保存的类型时 BulletChatNode 而不是指针
 				pool.BulletChat.PushBack(*bulletChat)
 			}
@@ -92,17 +101,21 @@ func ParseBulletChat(root *Element, filter BulletChatFilter) *BulletChatPool {
 	return pool
 }
 
-func plainChat(src Element) *BulletChatNode {
+func plainChat(src element) *BulletChatNode {
+	//弹幕内容为空，不添加
+	if src.value == "" {
+		return nil
+	}
 	//Time初始化为-1，用于测试时判断是否解析成功
 	node := &BulletChatNode{
 		Time: -1,
 	}
 	//弹幕内容
-	node.Value = src.Value
+	node.Value = src.value
 	//弹幕字数
 	node.Length = utf8.RuneCountInString(node.Value)
 	//从属性p上解析 开始时间点，类型，颜色
-	p := strings.Split(src.Attrs["p"], ",")
+	p := strings.Split(src.attrs["p"], ",")
 	if len(p) < 8 {
 		panic("弹幕格式错误")
 	}
@@ -136,15 +149,19 @@ func plainChat(src Element) *BulletChatNode {
 	return node
 }
 
-func superChat(src Element) *BulletChatNode {
+func superChat(src element) *BulletChatNode {
+	//弹幕内容为空，不添加
+	if src.value == "" {
+		return nil
+	}
 	//Time初始化为-1，用于测试时判断是否解析成功
 	node := &BulletChatNode{
 		Time: -1,
 	}
-	timePoint, _ := strconv.ParseFloat(src.Attrs["ts"], 32)
-	price, _ := strconv.Atoi(src.Attrs["price"])
+	timePoint, _ := strconv.ParseFloat(src.attrs["ts"], 32)
+	price, _ := strconv.Atoi(src.attrs["price"])
 
-	node.Value = src.Value
+	node.Value = src.value
 	//弹幕字数
 	node.Length = utf8.RuneCountInString(node.Value)
 	node.Price = price
@@ -177,4 +194,19 @@ func superChat(src Element) *BulletChatNode {
 		node.Color = 0xab1a32
 	}
 	return node
+}
+
+func (b *BulletChatPool) Convert(dst io.Writer, config AssConfig) error {
+	writer, ok := dst.(*bufio.Writer)
+	if !ok {
+		//512KB的缓冲区
+		bufSize := 1024 * 512
+		writer = bufio.NewWriterSize(dst, bufSize)
+	}
+	ap := &assProcessor{AssConfig: config, pool: b}
+	err := ap.write(writer)
+	if err != nil {
+		return err
+	}
+	return writer.Flush()
 }

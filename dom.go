@@ -6,22 +6,22 @@ import (
 	"io"
 )
 
-type Element struct {
+type element struct {
 	//标签名
-	Name string
+	name string
 	//该标签的值
-	Value string
+	value string
 	//该标签中的属性
-	Attrs map[string]string
+	attrs map[string]string
 	//该标签中的子标签
-	Children *list.List
+	children *list.List
 	//该标签的父标签
-	Parent *Element
+	parent *element
 	//整个xml文档的根标签
-	Root *Element
+	root *element
 }
 
-func LoadXML(reader io.Reader) (current *Element) {
+func loadXML(reader io.Reader) (current *element) {
 	decoder := xml.NewDecoder(reader)
 	//标记是否是根节点
 	isRoot := true
@@ -39,43 +39,43 @@ func LoadXML(reader io.Reader) (current *Element) {
 		case xml.StartElement:
 			//一个StartElement即为一个XML标签的开始
 			//从中获取去属性，标签名
-			element := &Element{
-				Name:  token.Name.Local,
-				Attrs: make(map[string]string),
+			e := &element{
+				name:  token.Name.Local,
+				attrs: make(map[string]string),
 			}
 			//以属性名为键
 			for _, attr := range token.Attr {
-				element.Attrs[attr.Name.Local] = attr.Value
+				e.attrs[attr.Name.Local] = attr.Value
 			}
 
 			if isRoot {
 				isRoot = false
 				//根节点的Root为其自身
-				element.Root = element
+				e.root = e
 			} else {
-				element.Root = current.Root
-				element.Parent = current
+				e.root = current.root
+				e.parent = current
 			}
 			//更新current为当前标签
-			current = element
+			current = e
 		case xml.CharData:
 			//CharData即为标签中的值
 			if current != nil {
-				current.Value = string(token.Copy())
+				current.value = string(token.Copy())
 			}
 		case xml.EndElement:
 			//一个标签的结束标签，即"<demo>value</demo>"中的 "</demo>"
-			if current.Parent != nil {
+			if current.parent != nil {
 				//当前节点处理完成时，将其加入到其父节点的Children链表中
-				childrenList := current.Parent.Children
+				childrenList := current.parent.children
 				if childrenList == nil {
 					childrenList = list.New()
 				}
-				//这里的类型是 Element
+				//这里的类型是 element
 				childrenList.PushBack(*current)
-				current.Parent.Children = childrenList
+				current.parent.children = childrenList
 				//更新current为当前节点的父节点
-				current = current.Parent
+				current = current.parent
 			}
 		case xml.Comment:
 		//xml文档中的注释信息
@@ -84,5 +84,5 @@ func LoadXML(reader io.Reader) (current *Element) {
 
 		}
 	}
-	return current.Root
+	return current.root
 }

@@ -1,14 +1,14 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"github.com/Hami-Lemon/converter"
 	"os"
+
+	"github.com/Hami-Lemon/converter"
 )
 
 func main() {
-	src, err := os.Open("./test/test.xml")
+	src, err := os.Open("D:\\ProgrameStudy\\converter\\converter\\test\\test.xml")
 	if err != nil {
 		if os.IsNotExist(err) {
 			fmt.Printf("文件不存在：%v\n", "")
@@ -17,14 +17,11 @@ func main() {
 			panic(err)
 		}
 	}
-
-	domRoot := converter.LoadXML(src)
+	chain := converter.NewFilterChain()
+	kf := &converter.KeyWordFilter{Keyword: []string{"?", "？"}}
+	chain.AddFilter(converter.NewTypeConverter("stb -> rrr")).AddFilter(kf)
+	pool := converter.LoadPool(src, chain)
 	_ = src.Close()
-	if domRoot == nil {
-		fmt.Println("解析XML文件失败")
-		return
-	}
-	pool := converter.ParseBulletChat(domRoot, &converter.EmptyFilter{})
 	if pool == nil {
 		fmt.Println("弹幕为空")
 		return
@@ -34,15 +31,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	//512KB的缓冲区
-	bufSize := 1024 * 512
-	writer := bufio.NewWriterSize(dst, bufSize)
 	assConfig := converter.DefaultAssConfig
-	assProcessor := converter.NewAssProcessor(assConfig, pool)
-	err = assProcessor.Write(writer)
+	err = pool.Convert(dst, assConfig)
 	if err != nil {
 		panic(err)
 	}
-	_ = writer.Flush()
 	_ = dst.Close()
 }
