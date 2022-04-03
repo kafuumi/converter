@@ -18,6 +18,7 @@ const Version = "Bullet Chat Converter (bcc) version: 0.1.0"
 var (
 	xml      string //待转换的xml文件
 	location string //该程序所在的目录，从该目录下读取配置文件
+	logger   = log.New(os.Stdout, "[log] ", log.Ldate|log.Lshortfile)
 )
 
 func flags() {
@@ -33,7 +34,7 @@ func flags() {
 		var err error
 		xml, err = os.Getwd()
 		if err != nil {
-			log.Fatalln(err)
+			logger.Fatalln(err)
 		}
 	}
 }
@@ -43,9 +44,9 @@ func main() {
 	xmlState, err := os.Stat(xml)
 	if err != nil {
 		if os.IsNotExist(err) {
-			log.Fatalf("文件：%s不存在\n", xml)
+			logger.Fatalf("文件：%s不存在\n", xml)
 		} else {
-			log.Fatalln(err)
+			logger.Fatalln(err)
 		}
 	}
 
@@ -55,7 +56,7 @@ func main() {
 			xml += string(os.PathSeparator)
 		}
 		if entries, err := os.ReadDir(xml); err != nil {
-			log.Fatalln(err)
+			logger.Fatalln(err)
 		} else {
 			for _, entry := range entries {
 				if !entry.IsDir() {
@@ -70,18 +71,22 @@ func main() {
 		if strings.HasSuffix(xml, ".xml") {
 			xmls = append(xmls, xml)
 		} else {
-			log.Fatalln("不支持的文件格式。")
+			logger.Fatalln("不支持的文件格式。")
 		}
 	}
 
 	location = filepath.Dir(os.Args[0]) + string(os.PathSeparator) + "setting.json"
 	f, err := os.Open(location)
+	var setting Setting
 	if err != nil {
-		if !os.IsNotExist(err) {
-			log.Fatalln(err)
+		if os.IsNotExist(err) {
+			setting = DefaultSetting
+		} else {
+			logger.Fatalln(err)
 		}
+	} else {
+		setting = ReadSetting(f)
 	}
-	setting := ReadSetting(f)
 	assConfig := setting.GetAssConfig()
 	chain := converter.NewFilterChain()
 	keywordFilter, typeFilter := setting.GetFilter()
@@ -110,7 +115,7 @@ func main() {
 			dst, err := os.Create(dstFile)
 			if err != nil {
 				atomic.AddInt32(&failed, 1)
-				log.Println(err)
+				logger.Println(err)
 				return
 			}
 			if err := pool.Convert(dst, assConfig); err == nil {

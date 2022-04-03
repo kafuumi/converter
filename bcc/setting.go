@@ -2,10 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"io"
-	"log"
-
 	"github.com/Hami-Lemon/converter"
+	"io"
 )
 
 // DefaultSetting 默认设置
@@ -59,16 +57,16 @@ type Setting struct {
 	Convert      string   `json:"convert"`      //转换弹幕类型
 }
 
-func (s *Setting) GetAssConfig() converter.AssConfig {
+func (s Setting) GetAssConfig() converter.AssConfig {
 	textColor, _ := converter.ParseStringARGB(s.Alpha, "0xffffff")
 	outlineColor, err := converter.ParseStringARGB(s.OutlineColor.Alpha, s.OutlineColor.RGB)
 	if err != nil {
-		log.Printf("描边颜色设置错误：%v\n", err)
+		logger.Printf("描边颜色设置错误：%v\n", err)
 		outlineColor = 0x1E49516A
 	}
 	shadowColor, err := converter.ParseStringARGB(s.ShadowColor.Alpha, s.ShadowColor.RGB)
 	if err != nil {
-		log.Printf("阴影颜色设置错误：%v\n", err)
+		logger.Printf("阴影颜色设置错误：%v\n", err)
 		shadowColor = 0x1E49516A
 	}
 
@@ -95,7 +93,7 @@ func (s *Setting) GetAssConfig() converter.AssConfig {
 	return config
 }
 
-func (s *Setting) GetFilter() (keyword converter.BulletChatFilter,
+func (s Setting) GetFilter() (keyword converter.BulletChatFilter,
 	convert converter.BulletChatFilter) {
 	if s.Keyword == nil {
 		keyword = nil
@@ -110,14 +108,11 @@ func (s *Setting) GetFilter() (keyword converter.BulletChatFilter,
 	return
 }
 
-func ReadSetting(src io.Reader) *Setting {
+func ReadSetting(src io.Reader) Setting {
 	setting := DefaultSetting
-	if src == nil {
-		return &setting
-	}
 	err := json.NewDecoder(src).Decode(&setting)
 	if err != nil && err != io.EOF {
-		log.Fatalln(err)
+		logger.Fatalln(err)
 	}
-	return &setting
+	return setting
 }
