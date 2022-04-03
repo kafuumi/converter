@@ -1,0 +1,28 @@
+{
+  "fontsize": 26,
+  "fontName": "黑体",
+  "alpha": 0.3,
+  "outlineColor": {
+    "rgb": "0x49516A",
+    "alpha": 0.1
+  },
+  "shadowColor": {
+    "rgb": "0x49516A",
+    "alpha": 0.1
+  },
+  "rollTime": 15,
+  "fixTime": 5,
+  "timeShift": 0,
+  "bold": true,
+  "outline": 0,
+  "shadow": 1,
+  "width": 1920,
+  "height": 1080,
+  "rollRange": 1.0,
+  "fixedRange": 1.0,
+  "spacing": 0,
+  "density": 0,
+  "overlay": false,
+  "keyword": null,
+  "convert": "s -> r"
+}

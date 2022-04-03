@@ -7,33 +7,13 @@ import (
 )
 
 var (
-	ErrEmptyPoll     = errors.New("assProcessor: empty bullet chats")
-	DefaultAssConfig = AssConfig{
-		FontSize: 26,
-		FontName: "黑体",
-		//默认白色，30%透明度
-		Color:        0x4cffffff,
-		OutlineColor: 0x1E49516A,
-		BackColor:    0x1E49516A,
-		RollSpeed:    15,
-		FixTime:      5,
-		TimeShift:    0,
-		IsBold:       true,
-		Outline:      0,
-		Shadow:       1,
-		Width:        1920,
-		Height:       1080,
-		RollRange:    1.0,
-		FixedRange:   1.0,
-		Spacing:      0,
-		Density:      0,
-		Overlay:      false,
-	}
+	ErrEmptyPoll = errors.New("assProcessor: empty bullet chats")
 )
 
+// AssConfig ASS字幕配置
 type AssConfig struct {
 	//字体大小，默认38
-	FontSize int
+	Fontsize int
 	//字体名称，默认SimHei(黑体)
 	FontName string
 	//字体颜色，这里的颜色是一个全局设置，一条具体的 弹幕可以通过ass代码进行修改
@@ -123,26 +103,22 @@ func (a *assProcessor) write(writer io.Writer) (err error) {
 			//弹幕间距带来的偏移
 			offset := trackId * a.Spacing
 			//滚动的起始坐标,x = 屏幕宽度+(字体大小*字数)即屏幕宽度+弹幕的长度
-			bulletLen := a.FontSize * bullet.Length
+			bulletLen := a.Fontsize * bullet.Length
 			//对水平方向，相对于文字内容的中心，对垂直方向，相对于文字内容的底部
-			sx, sy := a.Width+(bulletLen>>1), a.FontSize
+			sx, sy := a.Width+(bulletLen>>1), a.Fontsize
 			sy *= trackId
 			sy += offset
 			//结束坐标
 			ex, ey := -bulletLen>>1, sy
 			//开始时间和结束时间 0:00:00.00 格式
 			st, et := TimeToString(bullet.Time), TimeToString(bullet.Time+a.RollSpeed)
-			var text string
-			if bullet.Color.RGBEquals(a.Color) {
-				text = fmt.Sprintf("{\\move(%d,%d,%d,%d)}%s", sx, sy, ex, ey, bullet.Value)
-			} else {
-				text = fmt.Sprintf("{\\move(%d,%d,%d,%d)\\c%s}%s", sx, sy, ex, ey, bullet.Color.AssHex(), bullet.Value)
-			}
-			_, err = fmt.Fprintf(writer, "Dialogue: 0,%s,%s,Roll,,0000,0000,0000,,%s\n", st, et, text)
+			_, err = fmt.Fprintf(writer,
+				"Dialogue: 0,%s,%s,Roll,,0000,0000,0000,,{\\move(%d,%d,%d,%d)\\c%s}%s\n",
+				st, et, sx, sy, ex, ey, bullet.Color.AssHex(), bullet.Value)
 		case Top:
 			//显示的坐标
 			//y轴坐标表示文字内容底部距离顶部的距离
-			x, y := a.Width/2, a.FontSize
+			x, y := a.Width/2, a.Fontsize
 			trackId, ok := tTrack.findTrack(&bullet, &a.AssConfig)
 			if !ok {
 				continue
@@ -152,13 +128,9 @@ func (a *assProcessor) write(writer io.Writer) (err error) {
 			y *= trackId
 			y += offset
 			st, et := TimeToString(bullet.Time), TimeToString(bullet.Time+a.FixTime)
-			var text string
-			if bullet.Color.RGBEquals(a.Color) {
-				text = fmt.Sprintf("{\\pos(%d,%d)}%s", x, y, bullet.Value)
-			} else {
-				text = fmt.Sprintf("{\\pos(%d,%d)\\c%s}%s", x, y, bullet.Color.AssHex(), bullet.Value)
-			}
-			_, err = fmt.Fprintf(writer, "Dialogue: 0,%s,%s,Top,,0000,0000,0000,,%s\n", st, et, text)
+			_, err = fmt.Fprintf(writer,
+				"Dialogue: 0,%s,%s,Top,,0000,0000,0000,,{\\pos(%d,%d)\\c%s}%s\n",
+				st, et, x, y, bullet.Color.AssHex(), bullet.Value)
 		case Bottom:
 			//显示的坐标
 			//y轴坐标表示文字内容底部距离顶部的距离
@@ -169,17 +141,13 @@ func (a *assProcessor) write(writer io.Writer) (err error) {
 			}
 			//弹幕间距带来的偏移
 			offset := trackId * a.Spacing
-			y -= a.FontSize * trackId
+			y -= a.Fontsize * trackId
 			//底部弹幕应该向上偏移
 			y -= offset
 			st, et := TimeToString(bullet.Time), TimeToString(bullet.Time+a.FixTime)
-			var text string
-			if bullet.Color.RGBEquals(a.Color) {
-				text = fmt.Sprintf("{\\pos(%d,%d)}%s", x, y, bullet.Value)
-			} else {
-				text = fmt.Sprintf("{\\pos(%d,%d)\\c%s}%s", x, y, bullet.Color.AssHex(), bullet.Value)
-			}
-			_, err = fmt.Fprintf(writer, "Dialogue: 0,%s,%s,Bottom,,0000,0000,0000,,%s\n", st, et, text)
+			_, err = fmt.Fprintf(writer,
+				"Dialogue: 0,%s,%s,Bottom,,0000,0000,0000,,{\\pos(%d,%d)\\c%s}%s\n",
+				st, et, x, y, bullet.Color.AssHex(), bullet.Value)
 		case SupperChat:
 			//sc
 		default:
@@ -219,12 +187,12 @@ func (a *assProcessor) writeStyle(writer io.Writer) (err error) {
 	//V4+ Styles
 	_, err = fmt.Fprintln(writer, "\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding")
 	_, err = fmt.Fprintf(writer, "Style: Roll,%s,%d,%s,&H00FFFFFF,%s,%s,%s,0,0,0,100,100,0,0,1,%d,%d,8,0,0,0,1\n",
-		a.FontName, a.FontSize, a.Color.AssHexWithA(), a.OutlineColor.AssHexWithA(), a.BackColor.AssHexWithA(), bti(a.IsBold), a.Outline, a.Shadow)
+		a.FontName, a.Fontsize, a.Color.AssHexWithA(), a.OutlineColor.AssHexWithA(), a.BackColor.AssHexWithA(), bti(a.IsBold), a.Outline, a.Shadow)
 	_, err = fmt.Fprintf(writer, "Style: Top,%s,%d,%s,&H00FFFFFF,%s,%s,%s,0,0,0,100,100,0,0,1,%d,%d,8,0,0,0,1\n",
-		a.FontName, a.FontSize, a.Color.AssHexWithA(), a.OutlineColor.AssHexWithA(), a.BackColor.AssHexWithA(), bti(a.IsBold), a.Outline, a.Shadow)
+		a.FontName, a.Fontsize, a.Color.AssHexWithA(), a.OutlineColor.AssHexWithA(), a.BackColor.AssHexWithA(), bti(a.IsBold), a.Outline, a.Shadow)
 	_, err = fmt.Fprintf(writer, "Style: Bottom,%s,%d,%s,&H00FFFFFF,%s,%s,%s,0,0,0,100,100,0,0,1,%d,%d,2,0,0,0,1\n",
-		a.FontName, a.FontSize, a.Color.AssHexWithA(), a.OutlineColor.AssHexWithA(), a.BackColor.AssHexWithA(), bti(a.IsBold), a.Outline, a.Shadow)
+		a.FontName, a.Fontsize, a.Color.AssHexWithA(), a.OutlineColor.AssHexWithA(), a.BackColor.AssHexWithA(), bti(a.IsBold), a.Outline, a.Shadow)
 	_, err = fmt.Fprintf(writer, "Style: SC,%s,%d,%s,&H00FFFFFF,%s,%s,%s,0,0,0,100,100,0,0,1,%d,%d,8,0,0,0,1\n",
-		a.FontName, a.FontSize, a.Color.AssHexWithA(), a.OutlineColor.AssHexWithA(), a.BackColor.AssHexWithA(), bti(a.IsBold), a.Outline, a.Shadow)
+		a.FontName, a.Fontsize, a.Color.AssHexWithA(), a.OutlineColor.AssHexWithA(), a.BackColor.AssHexWithA(), bti(a.IsBold), a.Outline, a.Shadow)
 	return
 }

@@ -19,7 +19,7 @@ func newDensityQualifier(limit, timeSlice int) *densityQualifier {
 	return &densityQualifier{limit: l, timeSlice: t}
 }
 
-//根据密度限定，判断是否显示该弹幕
+//根据密度限定，判断是否显示该弹幕，返回false则表示不显示该弹幕
 func (d *densityQualifier) check(node *BulletChatNode) bool {
 	//0为无限密度，即不对密度做限制
 	if d.limit == 0 {

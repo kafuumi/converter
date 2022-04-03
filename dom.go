@@ -21,6 +21,7 @@ type element struct {
 	root *element
 }
 
+//解析xml文件
 func loadXML(reader io.Reader) (current *element) {
 	decoder := xml.NewDecoder(reader)
 	//标记是否是根节点

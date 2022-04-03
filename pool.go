@@ -196,6 +196,7 @@ func superChat(src element) *BulletChatNode {
 	return node
 }
 
+// Convert 转换为ass字幕文件
 func (b *BulletChatPool) Convert(dst io.Writer, config AssConfig) error {
 	writer, ok := dst.(*bufio.Writer)
 	if !ok {

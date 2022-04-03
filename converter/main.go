@@ -1,40 +1,127 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"log"
 	"os"
+	"path/filepath"
+	"strings"
+	"sync"
+	"sync/atomic"
 
 	"github.com/Hami-Lemon/converter"
 )
 
-func main() {
-	src, err := os.Open("D:\\ProgrameStudy\\converter\\converter\\test\\test.xml")
-	if err != nil {
-		if os.IsNotExist(err) {
-			fmt.Printf("文件不存在：%v\n", "")
-			return
-		} else {
-			panic(err)
+const Version = "Bullet Chat Converter (bcc) version: 0.1.0"
+
+var (
+	xml      string //待转换的xml文件
+	location string //该程序所在的目录，从该目录下读取配置文件
+)
+
+func flags() {
+	flag.StringVar(&xml, "x", "", "待转换的xml文件，如果该路径是一个目录，则处理目录下的所有xml文件，默认为当前目录")
+	flag.Usage = func() {
+		fmt.Println(Version)
+		fmt.Printf("将B站录播姬录制的XML文件转换成ass文件。\n\n")
+		fmt.Println("用法：bcc -x xml")
+		flag.PrintDefaults()
+	}
+	flag.Parse()
+	if xml == "" {
+		var err error
+		xml, err = os.Getwd()
+		if err != nil {
+			log.Fatalln(err)
 		}
 	}
-	chain := converter.NewFilterChain()
-	kf := &converter.KeyWordFilter{Keyword: []string{"?", "？"}}
-	chain.AddFilter(converter.NewTypeConverter("stb -> rrr")).AddFilter(kf)
-	pool := converter.LoadPool(src, chain)
-	_ = src.Close()
-	if pool == nil {
-		fmt.Println("弹幕为空")
-		return
+}
+
+func main() {
+	flags()
+	xmlState, err := os.Stat(xml)
+	if err != nil {
+		if os.IsNotExist(err) {
+			log.Fatalf("文件：%s不存在\n", xml)
+		} else {
+			log.Fatalln(err)
+		}
 	}
 
-	dst, err := os.Create("./test/test.ass")
-	if err != nil {
-		panic(err)
+	xmls := make([]string, 0)
+	if xmlState.IsDir() {
+		if xml[len(xml)-1] != os.PathSeparator {
+			xml += string(os.PathSeparator)
+		}
+		if entries, err := os.ReadDir(xml); err != nil {
+			log.Fatalln(err)
+		} else {
+			for _, entry := range entries {
+				if !entry.IsDir() {
+					name := entry.Name()
+					if strings.HasSuffix(name, ".xml") {
+						xmls = append(xmls, xml+name)
+					}
+				}
+			}
+		}
+	} else {
+		if strings.HasSuffix(xml, ".xml") {
+			xmls = append(xmls, xml)
+		} else {
+			log.Fatalln("不支持的文件格式。")
+		}
 	}
-	assConfig := converter.DefaultAssConfig
-	err = pool.Convert(dst, assConfig)
+
+	location = filepath.Dir(os.Args[0]) + string(os.PathSeparator) + "setting.json"
+	f, err := os.Open(location)
 	if err != nil {
-		panic(err)
+		if !os.IsNotExist(err) {
+			log.Fatalln(err)
+		}
 	}
-	_ = dst.Close()
+	setting := ReadSetting(f)
+	assConfig := setting.GetAssConfig()
+	chain := converter.NewFilterChain()
+	keywordFilter, typeFilter := setting.GetFilter()
+	chain.AddFilter(keywordFilter).AddFilter(typeFilter)
+	waitGroup := sync.WaitGroup{}
+	var success int32 = 0
+	var failed int32 = 0
+	for _, file := range xmls {
+		waitGroup.Add(1)
+		go func(xml string) {
+			src, _ := os.Open(xml)
+			if src == nil {
+				atomic.AddInt32(&failed, 1)
+				return
+			}
+			defer func() {
+				_ = src.Close()
+				waitGroup.Done()
+			}()
+			pool := converter.LoadPool(src, chain)
+			dotIndex := strings.LastIndex(xml, ".")
+			if dotIndex == -1 {
+				dotIndex = len(xml)
+			}
+			dstFile := xml[:dotIndex] + ".ass"
+			dst, err := os.Create(dstFile)
+			if err != nil {
+				atomic.AddInt32(&failed, 1)
+				log.Println(err)
+				return
+			}
+			if err := pool.Convert(dst, assConfig); err == nil {
+				fmt.Printf("[ok] %s ==> %s\n", xml, dstFile)
+				atomic.AddInt32(&success, 1)
+			} else {
+				atomic.AddInt32(&failed, 1)
+				fmt.Printf("[failed] %s\n", xml)
+			}
+		}(file)
+	}
+	waitGroup.Wait()
+	fmt.Printf("xml文件总数：%d, 转换成功数：%d 转换失败数：%d\n", len(xmls), success, failed)
 }

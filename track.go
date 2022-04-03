@@ -19,8 +19,8 @@ type rollTrack []rollTrackNode
 
 // newRollTrack 根据弹幕设置计算出轨道数
 func newRollTrack(config *AssConfig) rollTrack {
-	//增加弹幕可以等价为增加文字高度
-	fh := float32(config.FontSize + config.Spacing)
+	//增加弹幕间距可以等价为增加文字高度
+	fh := float32(config.Fontsize + config.Spacing)
 	h := float32(config.Height) * config.RollRange
 	//最后一行弹幕不受间距影响，所以这里将屏幕高度放大
 	h += float32(config.Spacing)
@@ -36,7 +36,7 @@ func newRollTrack(config *AssConfig) rollTrack {
 func (r rollTrack) findTrack(node *BulletChatNode, config *AssConfig) (int, bool) {
 	ra := []rollTrackNode(r)
 	//滚动的起始坐标,x = 屏幕宽度+(字体大小*字数)即屏幕宽度+弹幕的长度
-	bulletLen := config.FontSize * node.Length
+	bulletLen := config.Fontsize * node.Length
 	timePoint, speed, width := node.Time, config.RollSpeed, config.Width
 	//容忍值，当每条轨道都不满足要求时，选择一条可容忍的轨道，这里选择两条弹幕时间差相差最大的
 	tolerate := 0
@@ -90,11 +90,11 @@ type fixedTrack []int
 
 // newFixedTrack 根据弹幕设置计算出轨道数
 func newFixedTrack(config *AssConfig) fixedTrack {
-	//增加弹幕可以等价为增加文字高度
-	fh := float32(config.FontSize + config.Spacing)
+	//增加弹幕间距可以等价为增加文字高度
+	fh := float32(config.Fontsize + config.Spacing)
 	h := float32(config.Height) * config.FixedRange
 	//最后一行弹幕不受间距影响，所以这里将屏幕高度放大
-	h += float32(config.FontSize)
+	h += float32(config.Spacing)
 	trackNum := int(h / fh)
 	t := make(fixedTrack, trackNum)
 	return t
