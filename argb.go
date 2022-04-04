@@ -35,11 +35,8 @@ func ParseStringARGB(alpha float32, rgb string) (ARGB, error) {
 	rgbStr := strings.ToLower(rgb)
 	var rgbValue uint
 	var err error
-	if strings.HasPrefix(rgbStr, "0x") {
-		rgbStr = rgbStr[2:]
-	} else if strings.HasPrefix(rgbStr, "#") {
-		rgbStr = rgbStr[1:]
-	}
+	rgbStr = strings.TrimPrefix(rgbStr, "0x")
+	rgbStr = strings.TrimPrefix(rgbStr, "#")
 	value, err := hexToI(rgbStr)
 	rgbValue = uint(value)
 
