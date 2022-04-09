@@ -115,7 +115,7 @@
 `s`,`r`,`t`,`b`,`sr`,`st`,`sb`,...,`srtb`中的任意一个。
 额外说明：原弹幕类型和其对应的目标弹幕类型应该和分隔符处于对称位置。
 
-![格式说明](https://www.jianguoyun.com/c/tblv2/WABCGOhPaBeWiWPLujWZZldQIz4Yk6o0E_NFBzaS_FRJtSDMoTgr/ITeyRXkkCOdDyzE6O3mEbQ/l)
+![格式说明](http://i0.hdslb.com/bfs/album/ffe458f4dff17de3dab137ba2b4cd8fc9fdd16d3.png)
 
 例如：`s -> r`表示将SC转换成滚动弹幕，`sb -> r_`表示将SC过滤掉，底部弹幕转换成滚动弹幕。
 
@@ -144,23 +144,23 @@ bcc -x demo.xml
 
 #### 无限密度，不重叠
 
-![image-20220403210538703](https://www.jianguoyun.com/c/tblv2/r6mkSIR7OdEu7OHYpdtqUIwCVIkt2qLhIlG5zCiVpX06CSZ_kqaePx0dvXIAvab77Lw9zgXL/D6HyDq8X4Srbgxox-j0EFQ/l)
+![image-20220403210538703](http://i0.hdslb.com/bfs/album/ff441042a991de75d2a596d5db070f1c7fa419e2.png)
 
 ### 同屏密度限制100，不重叠
 
-![image](https://www.jianguoyun.com/c/tblv2/SpKNgqYWV368Cu7Kb2dCohFkaDPSv38JgcEZy3joXLjvYyxdO2QBK7cJvGYXvCIKT0mCQeuc/mZG6meYBj4zQs3NKpYAUsw/l)
+![image](http://i0.hdslb.com/bfs/album/18bba8db4a5c78954ce074d5c6d2b7243822542a.png)
 
 ### 滚动弹幕显示区域30%，无限密度，不重叠
 
-![image-20220403211042525](https://www.jianguoyun.com/c/tblv2/rdIVaoJqarnFFD2Hg-AHa8_Daujks6utJHgwOS0UsCMkQW6JUtDMhDtAeMBnCnpdqebypomC/8vFShrtV6k8g4QK6A1AeTA/l)
+![image-20220403211042525](http://i0.hdslb.com/bfs/album/fc90aff8fa3e79027628274e9c6aa751555fe8ab.png)
 
 ### 无限密度，允许重叠
 
-![image-20220403211145997](https://www.jianguoyun.com/c/tblv2/Pc92oKFxJLpSGPWaLNCp8nZs0JFTKgkANy23kfl2D7p0lyCqBzgQ_Wo3K9WpYvmvKoXw6s3A/LcxfApOc5yFzraoFmTElgQ/l)
+![image-20220403211145997](http://i0.hdslb.com/bfs/album/a7ad47401cc3ec794495e2c91506871a3b03fc4e.png)
 
 ### 40%显示区域，同屏密度120，不重叠，底部弹幕转为滚动弹幕
 
-![image-20220403211846869](https://www.jianguoyun.com/c/tblv2/ia8XcF6XyzN895b2ktD_RdqtMJERRsG8mbT1OiXyuEoCqqStwAjv-7pK2Aphf-mxpGetBACI/kuBn_P0Dxh0Or1u_abcWgA/l)
+![image-20220403211846869](http://i0.hdslb.com/bfs/album/267ad04405d32a91897249d90ab7fe75073f7dd1.png)
 
 ## 源码编译
 
