@@ -144,23 +144,23 @@ bcc -x demo.xml
 
 #### 无限密度，不重叠
 
-![image-20220403210538703](http://i0.hdslb.com/bfs/album/ff441042a991de75d2a596d5db070f1c7fa419e2.png)
+![image1](http://i0.hdslb.com/bfs/album/ff441042a991de75d2a596d5db070f1c7fa419e2.png@1280w_720h_75q.jpg)
 
 ### 同屏密度限制100，不重叠
 
-![image](http://i0.hdslb.com/bfs/album/18bba8db4a5c78954ce074d5c6d2b7243822542a.png)
+![image2](http://i0.hdslb.com/bfs/album/18bba8db4a5c78954ce074d5c6d2b7243822542a.png@1280w_720h_75q.jpg)
 
 ### 滚动弹幕显示区域30%，无限密度，不重叠
 
-![image-20220403211042525](http://i0.hdslb.com/bfs/album/fc90aff8fa3e79027628274e9c6aa751555fe8ab.png)
+![image3](http://i0.hdslb.com/bfs/album/fc90aff8fa3e79027628274e9c6aa751555fe8ab.png@1280w_720h_75q.jpg)
 
 ### 无限密度，允许重叠
 
-![image-20220403211145997](http://i0.hdslb.com/bfs/album/a7ad47401cc3ec794495e2c91506871a3b03fc4e.png)
+![image4](http://i0.hdslb.com/bfs/album/a7ad47401cc3ec794495e2c91506871a3b03fc4e.png@1280w_720h_75q.jpg)
 
 ### 40%显示区域，同屏密度120，不重叠，底部弹幕转为滚动弹幕
 
-![image-20220403211846869](http://i0.hdslb.com/bfs/album/267ad04405d32a91897249d90ab7fe75073f7dd1.png)
+![image5](http://i0.hdslb.com/bfs/album/267ad04405d32a91897249d90ab7fe75073f7dd1.png@1280w_720h_75q.jpg)
 
 ## 源码编译
 
