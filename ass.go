@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 )
 
 var (
@@ -81,6 +82,8 @@ func (a *assProcessor) write(writer io.Writer) (err error) {
 	var bTrack track = newFixedTrack(&a.AssConfig)
 	//密度限定器
 	qualifier := newDensityQualifier(a.Density, a.RollSpeed)
+	//将弹幕中的回车符,换行符，替换成 \N
+	replacer := strings.NewReplacer("\n", "\\N", "\r", "\\N")
 
 	for node := bulletChats.Front(); node != nil; node = node.Next() {
 		bullet := node.Value.(BulletChatNode)
@@ -90,6 +93,8 @@ func (a *assProcessor) write(writer io.Writer) (err error) {
 			//偏移负数时，置为0
 			bullet.Time = 0
 		}
+		//去除首尾的空白符，并将中间的回车符替换为 \N
+		bullet.Value = replacer.Replace(strings.TrimSpace(bullet.Value))
 		switch bullet.Type {
 		case Roll:
 			//只限定滚动弹幕密度
