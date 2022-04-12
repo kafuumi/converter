@@ -13,7 +13,7 @@ import (
 	"github.com/Hami-Lemon/converter"
 )
 
-const Version = "Bullet Chat Converter (bcc) version: 0.1.0"
+const Version = "Bullet Chat Converter (bcc) version: 0.2.1"
 
 var (
 	xml      string //待转换的xml文件
