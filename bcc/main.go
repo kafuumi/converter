@@ -7,13 +7,11 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
-	"sync/atomic"
 
 	"github.com/Hami-Lemon/converter"
 )
 
-const Version = "Bullet Chat Converter (bcc) version: 0.2.1"
+const Version = "Bullet Chat Converter (bcc) version: 0.2.2"
 
 var (
 	xml      string //待转换的xml文件
@@ -91,42 +89,36 @@ func main() {
 	chain := converter.NewFilterChain()
 	keywordFilter, typeFilter := setting.GetFilter()
 	chain.AddFilter(keywordFilter).AddFilter(typeFilter)
-	waitGroup := sync.WaitGroup{}
 	var success int32 = 0
 	var failed int32 = 0
 	for _, file := range xmls {
-		waitGroup.Add(1)
-		go func(xml string) {
-			src, _ := os.Open(xml)
-			if src == nil {
-				atomic.AddInt32(&failed, 1)
-				return
-			}
-			defer func() {
-				_ = src.Close()
-				waitGroup.Done()
-			}()
-			pool := converter.LoadPool(src, chain)
-			dotIndex := strings.LastIndex(xml, ".")
-			if dotIndex == -1 {
-				dotIndex = len(xml)
-			}
-			dstFile := xml[:dotIndex] + ".ass"
-			dst, err := os.Create(dstFile)
-			if err != nil {
-				atomic.AddInt32(&failed, 1)
-				logger.Println(err)
-				return
-			}
-			if err := pool.Convert(dst, assConfig); err == nil {
-				fmt.Printf("[ok] %s ==> %s\n", xml, dstFile)
-				atomic.AddInt32(&success, 1)
-			} else {
-				atomic.AddInt32(&failed, 1)
-				fmt.Printf("[failed] %s\n", xml)
-			}
-		}(file)
+		//加载xml文件
+		src, _ := os.Open(file)
+		if src == nil {
+			failed++
+			return
+		}
+		//如果在go程中加载xml，当文件过多时会出现过高的内存占用
+		pool := converter.LoadPool(src, chain)
+		_ = src.Close()
+		dotIndex := strings.LastIndex(file, ".")
+		if dotIndex == -1 {
+			dotIndex = len(file)
+		}
+		dstFile := file[:dotIndex] + ".ass"
+		dst, err := os.Create(dstFile)
+		if err != nil {
+			failed++
+			logger.Println(err)
+			return
+		}
+		if err := pool.Convert(dst, assConfig); err == nil {
+			fmt.Printf("[ok] %s ==> %s\n", file, dstFile)
+			success++
+		} else {
+			failed++
+			fmt.Printf("[failed] %s\n", file)
+		}
 	}
-	waitGroup.Wait()
 	fmt.Printf("xml文件总数：%d, 转换成功数：%d 转换失败数：%d\n", len(xmls), success, failed)
 }
